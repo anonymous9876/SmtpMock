@@ -29,11 +29,10 @@
             <button class="danger" title="Supprimer" (click)="removeEmail(email, $event)">×</button>
           </div>
           <div class="meta">
-            <span>{{ email.from || 'Expéditeur inconnu' }}</span>
+            <span>{{ getRecipientList(email) }}</span>
             <span>•</span>
             <span>{{ email.receivedAt | date: 'short' }}</span>
           </div>
-          <div class="preview">{{ email.body || '—' }}</div>
         </li>
       </ul>
     </aside>
