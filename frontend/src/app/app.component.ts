@@ -87,6 +87,11 @@ export class AppComponent implements OnInit {
     return email.id;
   }
 
+  getRecipientList(email: Email): string {
+    const recipients = email.to?.filter(Boolean) ?? [];
+    return recipients.length > 0 ? recipients.join(', ') : 'Destinataire inconnu';
+  }
+
   getAttachmentUrl(email: Email, attachment: EmailAttachment): string {
     return this.emailService.getAttachmentUrl(email.id, attachment.id);
   }
