@@ -1,5 +1,6 @@
 package com.example.smtpmock.service;
 
+import com.example.smtpmock.model.EmailAttachment;
 import com.example.smtpmock.model.StoredEmail;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,13 @@ public class EmailStoreService {
 
     public void remove(UUID id) {
         emails.removeIf(email -> email.getId().equals(id));
+    }
+
+    public Optional<EmailAttachment> findAttachment(UUID emailId, UUID attachmentId) {
+        return findById(emailId)
+                .flatMap(email -> email.getAttachments().stream()
+                        .filter(attachment -> attachmentId.equals(attachment.getId()))
+                        .findFirst());
     }
 
     public void clear() {

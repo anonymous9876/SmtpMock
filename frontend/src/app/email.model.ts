@@ -3,6 +3,13 @@ export interface EmailAddressGroup {
   values: string[];
 }
 
+export interface EmailAttachment {
+  id: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+}
+
 export interface Email {
   id: string;
   from: string | null;
@@ -13,4 +20,5 @@ export interface Email {
   body: string | null;
   receivedAt: string;
   rawMessage: string;
+  attachments: EmailAttachment[];
 }

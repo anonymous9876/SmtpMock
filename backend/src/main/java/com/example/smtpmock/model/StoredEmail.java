@@ -3,6 +3,7 @@ package com.example.smtpmock.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,12 +19,14 @@ public class StoredEmail {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant receivedAt;
     private String rawMessage;
+    private List<EmailAttachment> attachments = Collections.emptyList();
 
     public StoredEmail() {
     }
 
     public StoredEmail(UUID id, String from, List<String> to, List<String> cc, List<String> bcc,
-                       String subject, String body, Instant receivedAt, String rawMessage) {
+                       String subject, String body, Instant receivedAt, String rawMessage,
+                       List<EmailAttachment> attachments) {
         this.id = id;
         this.from = from;
         this.to = to;
@@ -33,6 +36,7 @@ public class StoredEmail {
         this.body = body;
         this.receivedAt = receivedAt;
         this.rawMessage = rawMessage;
+        this.attachments = attachments != null ? attachments : Collections.emptyList();
     }
 
     public UUID getId() {
@@ -105,5 +109,13 @@ public class StoredEmail {
 
     public void setRawMessage(String rawMessage) {
         this.rawMessage = rawMessage;
+    }
+
+    public List<EmailAttachment> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(List<EmailAttachment> attachments) {
+        this.attachments = attachments != null ? attachments : Collections.emptyList();
     }
 }

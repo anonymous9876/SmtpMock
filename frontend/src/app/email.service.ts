@@ -13,6 +13,10 @@ export class EmailService {
     return this.http.get<Email[]>(this.baseUrl);
   }
 
+  getAttachmentUrl(emailId: string, attachmentId: string): string {
+    return `${this.baseUrl}/${emailId}/attachments/${attachmentId}`;
+  }
+
   removeEmail(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

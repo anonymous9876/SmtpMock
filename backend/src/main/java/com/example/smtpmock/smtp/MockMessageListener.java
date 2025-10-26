@@ -1,5 +1,6 @@
 package com.example.smtpmock.smtp;
 
+import com.example.smtpmock.model.EmailAttachment;
 import com.example.smtpmock.model.StoredEmail;
 import com.example.smtpmock.service.EmailStoreService;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -57,8 +60,8 @@ public class MockMessageListener implements SimpleMessageListener {
     }
 
     private StoredEmail toStoredEmail(MimeMessage message, byte[] rawBytes) throws MessagingException, IOException {
+        ParsedEmailContent parsedEmailContent = extractContent(message);
         String subject = message.getSubject();
-        String body = extractBody(message);
         List<String> to = addressesToStrings(message.getRecipients(Message.RecipientType.TO));
         List<String> cc = addressesToStrings(message.getRecipients(Message.RecipientType.CC));
         List<String> bcc = addressesToStrings(message.getRecipients(Message.RecipientType.BCC));
@@ -69,9 +72,10 @@ public class MockMessageListener implements SimpleMessageListener {
                 cc,
                 bcc,
                 subject,
-                body,
+                parsedEmailContent.body,
                 Instant.now(),
-                raw);
+                raw,
+                parsedEmailContent.attachments);
     }
 
     private List<String> addressesToStrings(Address[] addresses) {
@@ -83,24 +87,64 @@ public class MockMessageListener implements SimpleMessageListener {
                 .collect(Collectors.toList());
     }
 
-    private String extractBody(MimeMessage message) throws IOException, MessagingException {
-        Object content = message.getContent();
-        if (content instanceof String) {
-            return (String) content;
+    private ParsedEmailContent extractContent(Part part) throws MessagingException, IOException {
+        ParsedEmailContent result = new ParsedEmailContent();
+        parsePart(part, result);
+        if (result.body == null) {
+            result.body = "";
         }
+        return result;
+    }
+
+    private void parsePart(Part part, ParsedEmailContent result) throws MessagingException, IOException {
+        Object content = part.getContent();
         if (content instanceof MimeMultipart) {
             MimeMultipart multipart = (MimeMultipart) content;
-            StringBuilder builder = new StringBuilder();
             for (int i = 0; i < multipart.getCount(); i++) {
-                Object partContent = multipart.getBodyPart(i).getContent();
-                builder.append(partContent.toString());
-                if (i < multipart.getCount() - 1) {
-                    builder.append("\n");
-                }
+                parsePart(multipart.getBodyPart(i), result);
             }
-            return builder.toString();
+            return;
         }
-        return content != null ? content.toString() : "";
+
+        String disposition = part.getDisposition();
+        String fileName = part.getFileName();
+        boolean isAttachment = disposition != null && Part.ATTACHMENT.equalsIgnoreCase(disposition);
+        if (!isAttachment) {
+            isAttachment = disposition != null && Part.INLINE.equalsIgnoreCase(disposition) && fileName != null;
+        }
+
+        if (isAttachment || (fileName != null && !part.isMimeType("text/plain") && !part.isMimeType("text/html"))) {
+            byte[] data = toByteArray(part.getInputStream());
+            result.attachments.add(new EmailAttachment(UUID.randomUUID(),
+                    fileName != null ? fileName : "attachment-" + (result.attachments.size() + 1),
+                    part.getContentType(),
+                    data.length,
+                    data));
+            return;
+        }
+
+        if (part.isMimeType("text/plain")) {
+            if (result.body == null || result.body.isBlank()) {
+                result.body = content != null ? content.toString() : "";
+            }
+            return;
+        }
+
+        if (part.isMimeType("text/html") && (result.body == null || result.body.isBlank())) {
+            result.body = content != null ? content.toString() : "";
+            return;
+        }
+
+        if (content instanceof String && (result.body == null || result.body.isBlank())) {
+            result.body = (String) content;
+        } else if (!(content instanceof String)) {
+            byte[] data = toByteArray(part.getInputStream());
+            result.attachments.add(new EmailAttachment(UUID.randomUUID(),
+                    fileName != null ? fileName : "attachment-" + (result.attachments.size() + 1),
+                    part.getContentType(),
+                    data.length,
+                    data));
+        }
     }
 
     private byte[] toByteArray(InputStream inputStream) throws IOException {
@@ -111,5 +155,9 @@ public class MockMessageListener implements SimpleMessageListener {
             outputStream.write(buffer, 0, length);
         }
         return outputStream.toByteArray();
+    }
+    private static class ParsedEmailContent {
+        String body = "";
+        List<EmailAttachment> attachments = new ArrayList<>();
     }
 }
