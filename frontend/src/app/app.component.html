@@ -70,7 +70,10 @@
 
       <article class="body">
         <h3>Contenu</h3>
-        <pre>{{ selectedEmail?.body || '—' }}</pre>
+        <ng-container *ngIf="selectedEmail?.body; else emptyBody">
+          <app-sanitized-html [html]="selectedEmail?.body"></app-sanitized-html>
+        </ng-container>
+        <ng-template #emptyBody>—</ng-template>
       </article>
 
       <article class="attachments" *ngIf="selectedEmail?.attachments?.length">

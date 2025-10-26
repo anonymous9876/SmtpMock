@@ -3,11 +3,12 @@ import { CommonModule, DatePipe, NgIf, NgFor } from '@angular/common';
 import { Email, EmailAddressGroup, EmailAttachment } from './email.model';
 import { EmailService } from './email.service';
 import { Subscription } from 'rxjs';
+import { SanitizedHtmlComponent } from './sanitized-html.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, NgFor, NgIf, DatePipe],
+  imports: [CommonModule, NgFor, NgIf, DatePipe, SanitizedHtmlComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
