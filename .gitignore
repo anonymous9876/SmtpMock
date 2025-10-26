@@ -1,0 +1,17 @@
+# Maven target
+backend/target/
+
+# Node modules and build output
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/tmp/
+frontend/.cache/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log

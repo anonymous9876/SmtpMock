@@ -1,0 +1,79 @@
+<div class="app-shell">
+  <header class="header">
+    <div>
+      <h1>SMTP Mock</h1>
+      <p class="subtitle">Capturez et visualisez les e-mails envoyés vers le serveur de test.</p>
+    </div>
+    <div class="header-actions">
+      <button class="primary" (click)="refresh()" [disabled]="loading">
+        {{ loading ? 'Chargement…' : 'Rafraîchir' }}
+      </button>
+      <button class="secondary" (click)="clearAll()" [disabled]="emails.length === 0">
+        Tout effacer
+      </button>
+    </div>
+  </header>
+
+  <section class="main">
+    <aside class="email-list">
+      <div class="section-title">Messages ({{ emails.length }})</div>
+      <div *ngIf="loading" class="placeholder">Chargement des messages…</div>
+      <div *ngIf="!loading && emails.length === 0" class="placeholder">
+        Aucun e-mail reçu pour le moment. Configurez vos applications pour utiliser le port SMTP 2525.
+      </div>
+      <ul *ngIf="emails.length > 0">
+        <li *ngFor="let email of emails; trackBy: trackById" (click)="selectEmail(email)"
+            [class.active]="email.id === selectedEmail?.id">
+          <div class="item-header">
+            <span class="subject">{{ email.subject || '(sans objet)' }}</span>
+            <button class="danger" title="Supprimer" (click)="removeEmail(email, $event)">×</button>
+          </div>
+          <div class="meta">
+            <span>{{ email.from || 'Expéditeur inconnu' }}</span>
+            <span>•</span>
+            <span>{{ email.receivedAt | date: 'short' }}</span>
+          </div>
+          <div class="preview">{{ email.body || '—' }}</div>
+        </li>
+      </ul>
+    </aside>
+
+    <section class="email-details" *ngIf="selectedEmail; else emptyState">
+      <div class="details-header">
+        <h2>{{ selectedEmail?.subject || '(sans objet)' }}</h2>
+        <div class="meta">
+          <span>Reçu le {{ selectedEmail?.receivedAt | date: 'fullDate' }} à {{ selectedEmail?.receivedAt | date: 'shortTime' }}</span>
+        </div>
+      </div>
+
+      <div class="details-info">
+        <div class="info-row">
+          <span class="label">De</span>
+          <span class="value">{{ selectedEmail?.from || '—' }}</span>
+        </div>
+        <div class="info-row" *ngFor="let group of getRecipientGroups(selectedEmail)">
+          <span class="label">{{ group.label }}</span>
+          <span class="value">{{ group.values.join(', ') }}</span>
+        </div>
+      </div>
+
+      <article class="body">
+        <h3>Contenu</h3>
+        <pre>{{ selectedEmail?.body || '—' }}</pre>
+      </article>
+
+      <article class="raw">
+        <h3>Message brut</h3>
+        <pre>{{ selectedEmail?.rawMessage }}</pre>
+      </article>
+    </section>
+  </section>
+
+  <ng-template #emptyState>
+    <div class="placeholder detail-placeholder">
+      Sélectionnez un message pour afficher ses détails.
+    </div>
+  </ng-template>
+
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+</div>
