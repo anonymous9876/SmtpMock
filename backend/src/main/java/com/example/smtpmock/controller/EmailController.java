@@ -86,6 +86,9 @@ public class EmailController {
         if (fileName == null || fileName.isBlank()) {
             return "attachment";
         }
-        return fileName.replaceAll("[\\r\\n\\"]", "_");
+        return fileName
+                .replace("\r", "_")
+                .replace("\n", "_")
+                .replace("\"", "_");
     }
 }
