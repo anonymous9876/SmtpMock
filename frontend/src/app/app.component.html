@@ -17,12 +17,24 @@
   <section class="main">
     <aside class="email-list">
       <div class="section-title">Messages ({{ emails.length }})</div>
+      <div class="filter-input">
+        <input
+          #recipientFilter
+          type="text"
+          placeholder="Filtrer par destinataire"
+          (input)="onFilterChange(recipientFilter.value)"
+          [value]="filterValue"
+        />
+      </div>
       <div *ngIf="loading" class="placeholder">Chargement des messages…</div>
       <div *ngIf="!loading && emails.length === 0" class="placeholder">
         Aucun e-mail reçu pour le moment. Configurez vos applications pour utiliser le port SMTP 2525.
       </div>
-      <ul *ngIf="emails.length > 0">
-        <li *ngFor="let email of emails; trackBy: trackById" (click)="selectEmail(email)"
+      <div *ngIf="!loading && emails.length > 0 && filteredEmails.length === 0" class="placeholder">
+        Aucun message ne correspond à ce destinataire.
+      </div>
+      <ul *ngIf="filteredEmails.length > 0">
+        <li *ngFor="let email of filteredEmails; trackBy: trackById" (click)="selectEmail(email)"
             [class.active]="email.id === selectedEmail?.id">
           <div class="item-header">
             <span class="subject">{{ email.subject || '(sans objet)' }}</span>
