@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, NgIf, NgFor } from '@angular/common';
-import { Email, EmailAddressGroup } from './email.model';
+import { Email, EmailAddressGroup, EmailAttachment } from './email.model';
 import { EmailService } from './email.service';
 
 @Component({
@@ -85,5 +85,24 @@ export class AppComponent implements OnInit {
 
   trackById(_: number, email: Email): string {
     return email.id;
+  }
+
+  getAttachmentUrl(email: Email, attachment: EmailAttachment): string {
+    return this.emailService.getAttachmentUrl(email.id, attachment.id);
+  }
+
+  formatFileSize(size: number): string {
+    if (size === null || size === undefined) {
+      return '';
+    }
+    const units = ['octets', 'Ko', 'Mo', 'Go', 'To'];
+    let value = size;
+    let unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+    const formatted = unitIndex === 0 ? value.toString() : value.toFixed(1);
+    return `${formatted} ${units[unitIndex]}`;
   }
 }

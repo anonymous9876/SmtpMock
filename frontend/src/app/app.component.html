@@ -62,6 +62,18 @@
         <pre>{{ selectedEmail?.body || '—' }}</pre>
       </article>
 
+      <article class="attachments" *ngIf="selectedEmail?.attachments?.length">
+        <h3>Pièces jointes</h3>
+        <ul>
+          <li *ngFor="let attachment of selectedEmail!.attachments">
+            <a [href]="getAttachmentUrl(selectedEmail!, attachment)" download>
+              {{ attachment.fileName || 'Pièce jointe' }}
+            </a>
+            <span class="attachment-meta">{{ formatFileSize(attachment.size) }}</span>
+          </li>
+        </ul>
+      </article>
+
       <article class="raw">
         <h3>Message brut</h3>
         <pre>{{ selectedEmail?.rawMessage }}</pre>
