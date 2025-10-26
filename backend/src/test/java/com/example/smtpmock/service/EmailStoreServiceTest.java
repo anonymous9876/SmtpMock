@@ -16,6 +16,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 class EmailStoreServiceTest {
@@ -40,8 +41,10 @@ class EmailStoreServiceTest {
         assertThat(service.findAll()).containsExactly(second, first);
 
         ArgumentCaptor<EmailAddedEvent> captor = ArgumentCaptor.forClass(EmailAddedEvent.class);
-        verify(eventPublisher).publishEvent(captor.capture());
-        assertThat(captor.getValue().getEmail()).isEqualTo(second);
+        verify(eventPublisher, times(2)).publishEvent(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(EmailAddedEvent::getEmail)
+                .containsExactly(first, second);
     }
 
     @Test
