@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, NgIf, NgFor } from '@angular/common';
 import { Email, EmailAddressGroup, EmailAttachment } from './email.model';
 import { EmailService } from './email.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -10,17 +11,28 @@ import { EmailService } from './email.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   emails: Email[] = [];
   selectedEmail: Email | null = null;
   loading = false;
   errorMessage: string | null = null;
   filterValue = '';
+  private newEmailSubscription?: Subscription;
 
   constructor(private readonly emailService: EmailService) {}
 
   ngOnInit(): void {
     this.refresh();
+    this.newEmailSubscription = this.emailService.onNewEmail().subscribe({
+      next: email => this.handleIncomingEmail(email),
+      error: () => {
+        // Connection errors are logged in the service; keep the UI functional even if streaming fails.
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.newEmailSubscription?.unsubscribe();
   }
 
   refresh(): void {
@@ -123,6 +135,11 @@ export class AppComponent implements OnInit {
 
   onFilterChange(value: string): void {
     this.filterValue = value;
+    this.updateSelectionAfterFilter();
+  }
+
+  private handleIncomingEmail(email: Email): void {
+    this.emails = [email, ...this.emails.filter(existing => existing.id !== email.id)];
     this.updateSelectionAfterFilter();
   }
 

@@ -1,7 +1,9 @@
 package com.example.smtpmock.service;
 
+import com.example.smtpmock.event.EmailAddedEvent;
 import com.example.smtpmock.model.EmailAttachment;
 import com.example.smtpmock.model.StoredEmail;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -14,6 +16,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class EmailStoreService {
 
     private final CopyOnWriteArrayList<StoredEmail> emails = new CopyOnWriteArrayList<>();
+    private final ApplicationEventPublisher eventPublisher;
+
+    public EmailStoreService(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     public List<StoredEmail> findAll() {
         return Collections.unmodifiableList(emails);
@@ -27,6 +34,7 @@ public class EmailStoreService {
 
     public StoredEmail addEmail(StoredEmail email) {
         emails.add(0, email);
+        eventPublisher.publishEvent(new EmailAddedEvent(email));
         return email;
     }
 
