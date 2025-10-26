@@ -15,6 +15,7 @@ export class AppComponent implements OnInit {
   selectedEmail: Email | null = null;
   loading = false;
   errorMessage: string | null = null;
+  filterValue = '';
 
   constructor(private readonly emailService: EmailService) {}
 
@@ -28,7 +29,7 @@ export class AppComponent implements OnInit {
     this.emailService.getEmails().subscribe({
       next: emails => {
         this.emails = emails;
-        this.selectedEmail = emails.length > 0 ? emails[0] : null;
+        this.updateSelectionAfterFilter();
         this.loading = false;
       },
       error: () => {
@@ -48,8 +49,9 @@ export class AppComponent implements OnInit {
       next: () => {
         this.emails = this.emails.filter(e => e.id !== email.id);
         if (this.selectedEmail?.id === email.id) {
-          this.selectedEmail = this.emails.length > 0 ? this.emails[0] : null;
+          this.selectedEmail = null;
         }
+        this.updateSelectionAfterFilter();
       }
     });
   }
@@ -109,5 +111,39 @@ export class AppComponent implements OnInit {
     }
     const formatted = unitIndex === 0 ? value.toString() : value.toFixed(1);
     return `${formatted} ${units[unitIndex]}`;
+  }
+
+  get filteredEmails(): Email[] {
+    const filter = this.filterValue.trim().toLowerCase();
+    if (!filter) {
+      return this.emails;
+    }
+    return this.emails.filter(email => this.getAllRecipients(email).some(recipient => recipient.toLowerCase() === filter));
+  }
+
+  onFilterChange(value: string): void {
+    this.filterValue = value;
+    this.updateSelectionAfterFilter();
+  }
+
+  private getAllRecipients(email: Email): string[] {
+    const recipients: (string | null | undefined)[] = [
+      ...(email.to ?? []),
+      ...(email.cc ?? []),
+      ...(email.bcc ?? [])
+    ];
+    return recipients.filter((recipient): recipient is string => !!recipient);
+  }
+
+  private updateSelectionAfterFilter(): void {
+    const filtered = this.filteredEmails;
+    if (filtered.length === 0) {
+      this.selectedEmail = null;
+      return;
+    }
+    if (this.selectedEmail && filtered.some(email => email.id === this.selectedEmail!.id)) {
+      return;
+    }
+    this.selectedEmail = filtered[0];
   }
 }

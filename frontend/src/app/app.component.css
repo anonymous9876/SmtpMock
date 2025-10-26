@@ -47,6 +47,25 @@
   margin-bottom: 1rem;
 }
 
+.filter-input {
+  margin-bottom: 0.75rem;
+}
+
+.filter-input input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--card-bg);
+  font-size: 0.95rem;
+}
+
+.filter-input input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
 .email-list ul {
   list-style: none;
   margin: 0;
